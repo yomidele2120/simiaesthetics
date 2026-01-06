@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout";
-import { useState } from "react";
-import { Play } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Play, X, ChevronLeft, ChevronRight } from "lucide-react";
 // Lash images
 import lashClassic from "@/assets/lash-classic-1.jpg";
 import lashHybrid from "@/assets/lash-hybrid-1.jpg";
@@ -16,7 +16,15 @@ import tattooThigh from "@/assets/tattoo-thigh-1.jpg";
 
 const categories = ["All", "Lashes", "Tattoos", "Videos"];
 
-const galleryItems = [
+interface GalleryItem {
+  image?: string;
+  video?: string;
+  category: string;
+  title: string;
+  type: "image" | "video";
+}
+
+const galleryItems: GalleryItem[] = [
   // Lash work
   { image: lashVolume, category: "Lashes", title: "Volume Lash Extensions", type: "image" },
   { image: lashMega, category: "Lashes", title: "Mega Volume Set", type: "image" },
@@ -39,10 +47,55 @@ const galleryItems = [
 
 const Gallery = () => {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const filteredItems = activeCategory === "All" 
     ? galleryItems 
     : galleryItems.filter(item => item.category === activeCategory);
+
+  const openLightbox = (index: number) => {
+    setCurrentIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const goToPrevious = useCallback(() => {
+    setCurrentIndex((prev) => (prev === 0 ? filteredItems.length - 1 : prev - 1));
+  }, [filteredItems.length]);
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev === filteredItems.length - 1 ? 0 : prev + 1));
+  }, [filteredItems.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") goToPrevious();
+      if (e.key === "ArrowRight") goToNext();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen, goToPrevious, goToNext]);
+
+  // Prevent body scroll when lightbox is open
+  useEffect(() => {
+    if (lightboxOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [lightboxOpen]);
+
+  const currentItem = filteredItems[currentIndex];
 
   return (
     <Layout>
@@ -92,6 +145,7 @@ const Gallery = () => {
             {filteredItems.map((item, index) => (
               <div
                 key={index}
+                onClick={() => openLightbox(index)}
                 className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer"
               >
                 {item.type === "video" ? (
@@ -102,11 +156,7 @@ const Gallery = () => {
                       muted
                       loop
                       playsInline
-                      onMouseEnter={(e) => e.currentTarget.play()}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.pause();
-                        e.currentTarget.currentTime = 0;
-                      }}
+                      autoPlay
                     />
                     <div className="absolute top-4 right-4 w-10 h-10 bg-primary/80 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Play className="w-5 h-5 text-primary-foreground fill-current" />
@@ -133,6 +183,80 @@ const Gallery = () => {
           </div>
         </div>
       </section>
+
+      {/* Lightbox */}
+      {lightboxOpen && currentItem && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in"
+          onClick={closeLightbox}
+        >
+          {/* Close Button */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+            aria-label="Close lightbox"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+
+          {/* Previous Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              goToPrevious();
+            }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-6 h-6 text-white" />
+          </button>
+
+          {/* Next Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              goToNext();
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+            aria-label="Next"
+          >
+            <ChevronRight className="w-6 h-6 text-white" />
+          </button>
+
+          {/* Content */}
+          <div 
+            className="max-w-5xl max-h-[85vh] w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {currentItem.type === "video" ? (
+              <video
+                src={currentItem.video}
+                className="w-full h-full max-h-[85vh] object-contain rounded-lg"
+                controls
+                autoPlay
+                loop
+              />
+            ) : (
+              <img
+                src={currentItem.image}
+                alt={currentItem.title}
+                className="w-full h-full max-h-[85vh] object-contain rounded-lg"
+              />
+            )}
+            <div className="text-center mt-4">
+              <span className="text-primary text-sm font-medium uppercase tracking-wider">
+                {currentItem.category}
+              </span>
+              <h3 className="text-white font-heading text-xl font-medium mt-1">
+                {currentItem.title}
+              </h3>
+              <p className="text-white/60 text-sm mt-2">
+                {currentIndex + 1} / {filteredItems.length}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

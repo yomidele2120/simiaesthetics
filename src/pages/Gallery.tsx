@@ -1,5 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { useState } from "react";
+import { Play } from "lucide-react";
 // Lash images
 import lashClassic from "@/assets/lash-classic-1.jpg";
 import lashHybrid from "@/assets/lash-hybrid-1.jpg";
@@ -13,21 +14,27 @@ import tattooName from "@/assets/tattoo-name-1.jpg";
 import tattooTribal from "@/assets/tattoo-tribal-1.jpg";
 import tattooThigh from "@/assets/tattoo-thigh-1.jpg";
 
-const categories = ["All", "Lashes", "Tattoos"];
+const categories = ["All", "Lashes", "Tattoos", "Videos"];
 
 const galleryItems = [
   // Lash work
-  { image: lashVolume, category: "Lashes", title: "Volume Lash Extensions" },
-  { image: lashMega, category: "Lashes", title: "Mega Volume Set" },
-  { image: lashClassic, category: "Lashes", title: "Classic Lash Look" },
-  { image: lashHybrid, category: "Lashes", title: "Hybrid Lash Set" },
+  { image: lashVolume, category: "Lashes", title: "Volume Lash Extensions", type: "image" },
+  { image: lashMega, category: "Lashes", title: "Mega Volume Set", type: "image" },
+  { image: lashClassic, category: "Lashes", title: "Classic Lash Look", type: "image" },
+  { image: lashHybrid, category: "Lashes", title: "Hybrid Lash Set", type: "image" },
   // Tattoo work
-  { image: tattooSmall, category: "Tattoos", title: "'With Love' Script" },
-  { image: tattooBodyArt, category: "Tattoos", title: "'Body of Art' Back Tattoo" },
-  { image: tattooScript, category: "Tattoos", title: "Script Lettering Tattoo" },
-  { image: tattooName, category: "Tattoos", title: "Custom Name Tattoo" },
-  { image: tattooTribal, category: "Tattoos", title: "Tribal Back Design" },
-  { image: tattooThigh, category: "Tattoos", title: "'With Love, Always' Thigh" },
+  { image: tattooSmall, category: "Tattoos", title: "'With Love' Script", type: "image" },
+  { image: tattooBodyArt, category: "Tattoos", title: "'Body of Art' Back Tattoo", type: "image" },
+  { image: tattooScript, category: "Tattoos", title: "Script Lettering Tattoo", type: "image" },
+  { image: tattooName, category: "Tattoos", title: "Custom Name Tattoo", type: "image" },
+  { image: tattooTribal, category: "Tattoos", title: "Tribal Back Design", type: "image" },
+  { image: tattooThigh, category: "Tattoos", title: "'With Love, Always' Thigh", type: "image" },
+  // Videos
+  { video: "/videos/gallery-video-1.mp4", category: "Videos", title: "Beauty Session", type: "video" },
+  { video: "/videos/gallery-video-2.mp4", category: "Videos", title: "Lash Application", type: "video" },
+  { video: "/videos/gallery-video-3.mp4", category: "Videos", title: "Studio Moments", type: "video" },
+  { video: "/videos/gallery-video-4.mp4", category: "Videos", title: "Transformation", type: "video" },
+  { video: "/videos/gallery-video-5.mp4", category: "Videos", title: "Behind The Scenes", type: "video" },
 ];
 
 const Gallery = () => {
@@ -50,8 +57,8 @@ const Gallery = () => {
               Our Work — <span className="text-primary italic">Real Beauty Transformations</span>
             </h1>
             <p className="text-muted-foreground text-lg">
-              Browse through our portfolio of beautiful lash extensions and tattoo 
-              work. See the artistry and attention to detail in every transformation.
+              Browse through our portfolio of beautiful lash extensions, tattoo 
+              work, and videos. See the artistry and attention to detail in every transformation.
             </p>
           </div>
         </div>
@@ -87,11 +94,31 @@ const Gallery = () => {
                 key={index}
                 className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer"
               >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
+                {item.type === "video" ? (
+                  <>
+                    <video
+                      src={item.video}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      muted
+                      loop
+                      playsInline
+                      onMouseEnter={(e) => e.currentTarget.play()}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.pause();
+                        e.currentTarget.currentTime = 0;
+                      }}
+                    />
+                    <div className="absolute top-4 right-4 w-10 h-10 bg-primary/80 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Play className="w-5 h-5 text-primary-foreground fill-current" />
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
                   <span className="text-primary text-xs font-medium uppercase tracking-wider">
